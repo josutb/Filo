@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import useSWR from 'swr'
-import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, ChevronRight, Maximize, Minimize } from 'lucide-react'
 import { updateBook, type BookMeta } from '@/lib/db'
 import type { EpubBook } from '@/lib/epub'
 import { useBooks, useSettings } from '@/lib/hooks'
@@ -144,6 +144,33 @@ export function ReaderSession({ bookId, book, meta }: { bookId: string; book: Ep
 
   useEffect(() => () => window.clearTimeout(saveTimer.current), [])
 
+  const [immersive, setImmersive] = useState(false)
+
+  const enterImmersive = () => {
+    setImmersive(true)
+    document.documentElement.requestFullscreen?.().catch(() => {})
+  }
+
+  const exitImmersive = () => {
+    setImmersive(false)
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
+  }
+
+  useEffect(() => {
+    const onFullscreen = () => {
+      if (!document.fullscreenElement) setImmersive(false)
+    }
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !document.fullscreenElement) setImmersive(false)
+    }
+    document.addEventListener('fullscreenchange', onFullscreen)
+    window.addEventListener('keydown', onEsc)
+    return () => {
+      document.removeEventListener('fullscreenchange', onFullscreen)
+      window.removeEventListener('keydown', onEsc)
+    }
+  }, [])
+
   const onContentClick = (e: React.MouseEvent) => {
     const link = (e.target as Element).closest('a')
     if (!link) return
@@ -165,7 +192,7 @@ export function ReaderSession({ bookId, book, meta }: { bookId: string; book: Ep
       <header
         className={cn(
           'fixed inset-x-0 top-0 z-30 border-b border-border/50 bg-background/85 pt-[env(safe-area-inset-top)] backdrop-blur-xl transition-transform duration-300 ease-out',
-          !chromeVisible && '-translate-y-full',
+          (!chromeVisible || immersive) && '-translate-y-full',
         )}
       >
         <div className="mx-auto flex h-14 max-w-5xl items-center gap-1 px-2 sm:px-4">
@@ -180,9 +207,23 @@ export function ReaderSession({ bookId, book, meta }: { bookId: string; book: Ep
           <Link href="/vocabulario" className="hidden rounded-full px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:block">
             Vocabulario
           </Link>
+          <button type="button" onClick={enterImmersive} aria-label="Lectura inmersiva" className={iconButton}>
+            <Maximize className="size-[18px]" />
+          </button>
           <ReaderSettingsButton triggerClassName={iconButton} />
         </div>
       </header>
+
+      {immersive && (
+        <button
+          type="button"
+          onClick={exitImmersive}
+          aria-label="Salir de lectura inmersiva"
+          className="fixed top-[calc(env(safe-area-inset-top)+0.75rem)] right-3 z-40 flex size-10 items-center justify-center rounded-full bg-background/70 text-foreground/80 opacity-0 backdrop-blur transition-opacity hover:opacity-100 focus-visible:opacity-100 active:opacity-100"
+        >
+          <Minimize className="size-[18px]" />
+        </button>
+      )}
 
       <main
         className="mx-auto px-6 pt-[calc(env(safe-area-inset-top)+6rem)] pb-40 sm:px-10"
@@ -223,7 +264,7 @@ export function ReaderSession({ bookId, book, meta }: { bookId: string; book: Ep
       <footer
         className={cn(
           'pointer-events-none fixed inset-x-0 bottom-0 z-20 pb-[env(safe-area-inset-bottom)] transition-opacity duration-300',
-          chromeVisible ? 'opacity-100' : 'opacity-0',
+          chromeVisible && !immersive ? 'opacity-100' : 'opacity-0',
         )}
       >
         <div className="bg-gradient-to-t from-background via-background/90 to-transparent pt-6">
