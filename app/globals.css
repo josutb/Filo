@@ -1,0 +1,262 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is([data-theme='night'] *));
+
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-literata), ui-serif, Georgia, serif;
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --color-highlight: var(--highlight);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* Papel (default) */
+:root {
+  color-scheme: light;
+  --background: oklch(0.972 0.008 85);
+  --foreground: oklch(0.22 0.01 60);
+  --card: oklch(0.99 0.005 85);
+  --card-foreground: oklch(0.22 0.01 60);
+  --popover: oklch(0.995 0.004 85);
+  --popover-foreground: oklch(0.22 0.01 60);
+  --primary: oklch(0.47 0.13 32);
+  --primary-foreground: oklch(0.98 0.01 85);
+  --secondary: oklch(0.935 0.012 80);
+  --secondary-foreground: oklch(0.25 0.01 60);
+  --muted: oklch(0.935 0.012 80);
+  --muted-foreground: oklch(0.5 0.015 65);
+  --accent: oklch(0.92 0.02 75);
+  --accent-foreground: oklch(0.25 0.01 60);
+  --destructive: oklch(0.55 0.2 27);
+  --border: oklch(0.89 0.012 80);
+  --input: oklch(0.89 0.012 80);
+  --ring: oklch(0.47 0.13 32 / 0.5);
+  --highlight: oklch(0.88 0.1 75 / 0.55);
+  --radius: 0.75rem;
+}
+
+[data-theme='sepia'] {
+  color-scheme: light;
+  --background: oklch(0.935 0.03 80);
+  --foreground: oklch(0.3 0.03 60);
+  --card: oklch(0.955 0.025 82);
+  --card-foreground: oklch(0.3 0.03 60);
+  --popover: oklch(0.965 0.022 82);
+  --popover-foreground: oklch(0.3 0.03 60);
+  --primary: oklch(0.48 0.1 45);
+  --primary-foreground: oklch(0.97 0.02 82);
+  --secondary: oklch(0.895 0.035 78);
+  --secondary-foreground: oklch(0.3 0.03 60);
+  --muted: oklch(0.895 0.035 78);
+  --muted-foreground: oklch(0.5 0.035 62);
+  --accent: oklch(0.88 0.04 75);
+  --accent-foreground: oklch(0.3 0.03 60);
+  --destructive: oklch(0.52 0.18 27);
+  --border: oklch(0.85 0.035 76);
+  --input: oklch(0.85 0.035 76);
+  --ring: oklch(0.48 0.1 45 / 0.5);
+  --highlight: oklch(0.84 0.1 70 / 0.6);
+}
+
+[data-theme='night'] {
+  color-scheme: dark;
+  --background: oklch(0.18 0.004 60);
+  --foreground: oklch(0.89 0.012 80);
+  --card: oklch(0.215 0.005 60);
+  --card-foreground: oklch(0.89 0.012 80);
+  --popover: oklch(0.24 0.006 60);
+  --popover-foreground: oklch(0.91 0.012 80);
+  --primary: oklch(0.76 0.1 50);
+  --primary-foreground: oklch(0.2 0.01 60);
+  --secondary: oklch(0.27 0.006 60);
+  --secondary-foreground: oklch(0.89 0.012 80);
+  --muted: oklch(0.27 0.006 60);
+  --muted-foreground: oklch(0.66 0.012 75);
+  --accent: oklch(0.3 0.01 60);
+  --accent-foreground: oklch(0.9 0.012 80);
+  --destructive: oklch(0.65 0.18 25);
+  --border: oklch(1 0 0 / 9%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.76 0.1 50 / 0.5);
+  --highlight: oklch(0.6 0.1 60 / 0.4);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+}
+
+/* ---------- Reading surface ---------- */
+
+.folio-prose {
+  font-family: var(--reader-font, var(--font-serif));
+  font-size: var(--reader-size, 1.2rem);
+  line-height: var(--reader-leading, 1.7);
+  color: var(--foreground);
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  text-rendering: optimizeLegibility;
+  font-kerning: normal;
+  overflow-wrap: break-word;
+  -webkit-touch-callout: none;
+}
+
+.folio-prose ::selection {
+  background: var(--highlight);
+  color: inherit;
+}
+
+.folio-prose > * {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 3em;
+}
+
+.folio-prose p {
+  margin: 0 0 0.9em;
+  text-align: var(--reader-align, left);
+}
+
+.folio-prose h1,
+.folio-prose h2,
+.folio-prose h3,
+.folio-prose h4,
+.folio-prose h5,
+.folio-prose h6 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  margin: 1.6em 0 0.8em;
+  text-align: center;
+}
+
+.folio-prose h1 { font-size: 1.9em; }
+.folio-prose h2 { font-size: 1.55em; }
+.folio-prose h3 { font-size: 1.3em; }
+.folio-prose h4,
+.folio-prose h5,
+.folio-prose h6 { font-size: 1.1em; }
+
+.folio-prose a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+
+.folio-prose img,
+.folio-prose svg {
+  display: block;
+  max-width: 100%;
+  max-height: 80vh;
+  height: auto;
+  margin: 1.5em auto;
+  border-radius: 4px;
+}
+
+.folio-prose blockquote {
+  margin: 1.2em 0;
+  padding-left: 1.2em;
+  border-left: 2px solid var(--border);
+  font-style: italic;
+}
+
+.folio-prose ul,
+.folio-prose ol {
+  margin: 0 0 1em;
+  padding-left: 1.6em;
+}
+
+.folio-prose ul { list-style: disc; }
+.folio-prose ol { list-style: decimal; }
+
+.folio-prose hr {
+  margin: 2em auto;
+  width: 30%;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+.folio-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 0.9em;
+}
+
+.folio-prose td,
+.folio-prose th {
+  border: 1px solid var(--border);
+  padding: 0.4em 0.6em;
+}
+
+.folio-prose pre,
+.folio-prose code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+  white-space: pre-wrap;
+}
+
+.folio-prose sup,
+.folio-prose sub {
+  font-size: 0.7em;
+}
+
+::highlight(folio-selection) {
+  background-color: var(--highlight);
+}
+
+@keyframes folio-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.folio-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--muted) 0%,
+    color-mix(in oklch, var(--muted) 40%, var(--popover)) 50%,
+    var(--muted) 100%
+  );
+  background-size: 200% 100%;
+  animation: folio-shimmer 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .folio-shimmer { animation: none; }
+}
