@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Bookmark, BookmarkCheck, Check, Copy, RotateCcw, X } from 'lucide-react'
+import { BookOpen, Bookmark, BookmarkCheck, Check, Copy, RotateCcw, Volume2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { saveVocab } from '@/lib/db'
 import { useVocab } from '@/lib/hooks'
@@ -87,8 +87,17 @@ export function TranslationCard({
     }
   }, [data.range, long])
 
+  const [usageOpen, setUsageOpen] = useState(false)
+  const [usageState, setUsageState] = useState<'idle' | 'loading'>('idle')
+  const [usage, setUsage] = useState<{
+    meanings: { partOfSpeech: string; definition: string; example?: string }[]
+    examples: { en: string; es?: string }[]
+  } | null>(null)
+  const [usageFor, setUsageFor] = useState<number | null>(null)
+
   useEffect(() => {
     setCopied(false)
+    setUsageOpen(false)
   }, [data.id])
 
   const done = data.status === 'done'
@@ -122,6 +131,42 @@ export function TranslationCard({
     } catch {
       toast.error('No se pudo copiar')
     }
+  }
+
+  const speak = () => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      toast.error('Tu navegador no soporta la pronunciación')
+      return
+    }
+    window.speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(data.text)
+    utterance.lang = 'en-US'
+    utterance.rate = 0.9
+    const voice = window.speechSynthesis.getVoices().find((v) => v.lang.startsWith('en'))
+    if (voice) utterance.voice = voice
+    window.speechSynthesis.speak(utterance)
+  }
+
+  const toggleUsage = async () => {
+    if (usageOpen) {
+      setUsageOpen(false)
+      return
+    }
+    setUsageOpen(true)
+    if (usage && usageFor === data.id) return
+    setUsageState('loading')
+    try {
+      const res = await fetch('/api/usage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: data.text.slice(0, 120) }),
+      })
+      setUsage(res.ok ? await res.json() : { meanings: [], examples: [] })
+    } catch {
+      setUsage({ meanings: [], examples: [] })
+    }
+    setUsageFor(data.id)
+    setUsageState('idle')
   }
 
   return (
@@ -215,6 +260,57 @@ export function TranslationCard({
           <CardAction onClick={copy} label={copied ? 'Copiado' : 'Copiar'}>
             {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
           </CardAction>
+          <CardAction onClick={speak} label="Escuchar">
+            <Volume2 className="size-4" />
+          </CardAction>
+          <CardAction onClick={toggleUsage} active={usageOpen} label="Usos">
+            <BookOpen className="size-4" />
+          </CardAction>
+        </div>
+      )}
+
+      {done && usageOpen && (
+        <div className="max-h-[35vh] overflow-y-auto overscroll-contain border-t border-border px-4 py-3 text-sm">
+          {usageState === 'loading' ? (
+            <div className="flex flex-col gap-2" aria-label="Cargando usos">
+              <div className="folio-shimmer h-4 w-4/5 rounded" />
+              <div className="folio-shimmer h-4 w-3/5 rounded" />
+            </div>
+          ) : !usage || (usage.meanings.length === 0 && usage.examples.length === 0) ? (
+            <p className="text-muted-foreground">No se encontraron usos para esta selección.</p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {usage.meanings.length > 0 && (
+                <ul className="flex flex-col gap-2">
+                  {usage.meanings.map((m, i) => (
+                    <li key={i} className="leading-snug">
+                      {m.partOfSpeech && (
+                        <span className="mr-1.5 rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
+                          {m.partOfSpeech}
+                        </span>
+                      )}
+                      <span lang="en">{m.definition}</span>
+                      {m.example && (
+                        <span lang="en" className="mt-0.5 block font-serif text-muted-foreground italic">
+                          {`"${m.example}"`}
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {usage.examples.length > 0 && (
+                <ul className="flex flex-col gap-2 border-t border-border pt-3">
+                  {usage.examples.map((ex, i) => (
+                    <li key={i} className="leading-snug">
+                      <span lang="en" className="block font-serif">{ex.en}</span>
+                      {ex.es && <span lang="es" className="block text-muted-foreground">{ex.es}</span>}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
